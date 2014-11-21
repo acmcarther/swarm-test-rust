@@ -118,16 +118,20 @@ pub struct WorldManifold {
 impl WorldManifold {
   pub fn default() -> WorldManifold {
     // TODO: Make this an actual thing not an integer throne
+    // Probably a 2d array. Maybe something else thats faster
+    // Composition of gaussians faster?
     return WorldManifold{power_level: 5};
   }
 
   pub fn flatten(&mut self) -> () {
     // NOTE: What
+    // Probably set all indices in the array to zero. Ouch.
     self.power_level = 0
   }
 
   pub fn deform(&self, pos: Vec3, magnitude: f32, diameter: f32) -> () {
     // TODO: Something. At all.
+    // Probably apply a gaussian deformation onto a 2d array
     //println!("DEFORM");
   }
 
@@ -195,7 +199,6 @@ impl AnchorEnt {
       delta.normalized().scale(self.distance)
     };
 
-    // NOTE: Remember, no damping.
     return delta.transform(idle_pos.negated()).scale(self.strength);
   }
 }

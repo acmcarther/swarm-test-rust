@@ -1,6 +1,6 @@
 [package]
 
-name = "physics-demo"
+name = "swarm-test-rust"
 version = "0.0.1"
 authors = ["Alex McArther <acmcarther@gmail.com>"]
 
