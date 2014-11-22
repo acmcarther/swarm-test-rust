@@ -1,6 +1,6 @@
 extern crate cgmath;
 
-use cgmath::{Vector, Vector3, EuclideanVector};
+use cgmath::Vector3;
 
 pub struct WorldManifold {
   power_level: int
@@ -20,7 +20,7 @@ impl WorldManifold {
     self.power_level = 0
   }
 
-  pub fn deform(&self, pos: Vector3<f32>, magnitude: f32, diameter: f32) -> () {
+  pub fn deform(&mut self, pos: Vector3<f32>, magnitude: f32, diameter: f32) -> () {
     // TODO: Something. At all.
     // Probably apply a gaussian deformation onto a 2d array
     //println!("DEFORM");

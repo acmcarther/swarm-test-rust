@@ -9,13 +9,10 @@ extern crate native;
 extern crate time;
 
 use entity_field::EntityField;
-use anchor_ent::AnchorEnt;
-use swarm_ent::SwarmEnt;
-use world_manifold::WorldManifold;
 
 use cgmath::FixedArray;
 use cgmath:: {Matrix4, Point3};
-use cgmath::{Vector, Vector3, EuclideanVector};
+use cgmath::{Vector3};
 use cgmath::{Transform, AffineMatrix3};
 use gfx::{Device, DeviceHelper, ToSlice};
 use glfw::Context;
@@ -24,10 +21,10 @@ use std::rand::Rng;
 
 use std::io::File;
 
-mod world_manifold;
+mod entity_field;
 mod anchor_ent;
 mod swarm_ent;
-mod entity_field;
+mod world_manifold;
 
 // Graphics
 #[vertex_format]

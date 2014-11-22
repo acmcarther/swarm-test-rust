@@ -27,7 +27,7 @@ impl AnchorEnt {
 
   pub fn force_at(&self, other_pos: Vector3<f32>) -> Vector3<f32> {
     let delta = self.pos.sub_v(&other_pos);
-    let idle_pos: Vector3<f32> = if (delta == Vector3::new(0.0, 0.0, 0.0)) {
+    let idle_pos: Vector3<f32> = if delta == Vector3::new(0.0, 0.0, 0.0) {
       Vector3::new(self.distance, 0.0, 0.0)
     } else {
       delta.normalize_to(self.distance)

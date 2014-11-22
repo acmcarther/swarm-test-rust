@@ -1,6 +1,7 @@
 extern crate cgmath;
 
-use cgmath::{Vector, Vector3, EuclideanVector};
+use std::fmt;
+use cgmath::{Vector, Vector3};
 
 pub struct SwarmEnt {
   pub id: int,
@@ -13,9 +14,10 @@ impl SwarmEnt {
     self.vel = self.vel.add_v(&accel.mul_s(delta_t));
     self.pos = self.pos.add_v(&self.vel.mul_s(delta_t));
   }
+}
 
-  pub fn print(&self) -> () {
-    //println!("Ent @ ");
-    println!("{}", self.pos);
+impl fmt::Show for SwarmEnt {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "SwarmEnt: {}, pos: {}, vel {}", self.id, self.pos, self.vel)
   }
 }
