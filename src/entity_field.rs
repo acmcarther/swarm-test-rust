@@ -9,6 +9,7 @@ use cgmath::{Vector, Vector3, EuclideanVector};
 static SWARM_FIELD_SIZE: f32 = 2.0;
 static SWARM_FIELD_STR: f32 = 1.0;
 static GRAVITY_STR: f32 = -10.0;
+static COLL_DIAMETER: f32 = 1.0;
 
 pub struct EntityField {
   pub anchor: AnchorEnt,
@@ -45,7 +46,7 @@ impl EntityField {
       for second_ent in self.swarm.iter() {
         if first_ent.id < second_ent.id {
           // Collision detection
-          if first_ent.pos.sub_v(&second_ent.pos).length() < 1.0 {
+          if first_ent.pos.sub_v(&second_ent.pos).length() < COLL_DIAMETER {
             collisions.push((first_ent.id, second_ent.id))
           }
         }
@@ -55,12 +56,25 @@ impl EntityField {
     for collision in collisions.iter() {
       // Collision resolution
       let &(first_id, second_id) = collision;
+
+      // TODO: is it ok just unwrap here?
+      let mut first_ent = self.get_ent_by_id(first_id).unwrap();
+      let mut second_ent = self.get_ent_by_id(second_id).unwrap();
+
+      // Move the two ents
+      let collision_vec = first_ent.pos.sub_v(&second_ent.pos);
+      let overlap = COLL_DIAMETER - collision_vec.length();
+      first_ent.pos = first_ent.pos.add_v(&collision_vec.normalize_to(overlap/2.0));
+      second_ent.pos = second_ent.pos.add_v(&collision_vec.neg().normalize_to(overlap/2.0));
+
+      // Make them bounce
+      let total_vel = first_ent.vel.add_v(&second_ent.vel);
     }
   }
 
-  fn get_ent_by_id(&mut self, id: int) -> Option<&SwarmEnt> {
+  fn get_ent_by_id(&self, id: int) -> Option<&SwarmEnt> {
     for ent in self.swarm.iter() {
-      if (ent.id == id) {
+      if ent.id == id {
         return Some(ent);
       }
     }
