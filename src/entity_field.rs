@@ -27,6 +27,7 @@ impl EntityField {
 
   pub fn tick(&mut self, delta_t: f32) -> () {
     for entity in self.swarm.iter() {
+      // I dont think this should use delta t, dt is factored in @ integration time
       self.world.deform(entity.pos, SWARM_FIELD_STR * delta_t, SWARM_FIELD_SIZE);
     }
 

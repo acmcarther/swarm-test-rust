@@ -1,4 +1,3 @@
-
 #![feature(phase)]
 // Graphics
 extern crate cgmath;
@@ -210,34 +209,35 @@ fn main() {
 
     glfw.poll_events();
     for (_, event) in glfw::flush_messages(&events) {
-        match event {
-            glfw::KeyEvent(glfw::Key::Escape, _, glfw::Press, _) =>
-               window.set_should_close(true),
-            glfw::KeyEvent(glfw::Key::H, _, glfw::Press, _) =>
-               going_left = true,
-            glfw::KeyEvent(glfw::Key::L, _, glfw::Press, _) =>
-               going_right = true,
-            glfw::KeyEvent(glfw::Key::H, _, glfw::Release, _) =>
-               going_left = false,
-            glfw::KeyEvent(glfw::Key::L, _, glfw::Release, _) =>
-               going_right = false,
-            glfw::KeyEvent(glfw::Key::J, _, glfw::Press, _) =>
-               going_fore = true,
-            glfw::KeyEvent(glfw::Key::K, _, glfw::Press, _) =>
-               going_back = true,
-            glfw::KeyEvent(glfw::Key::J, _, glfw::Release, _) =>
-               going_fore = false,
-            glfw::KeyEvent(glfw::Key::K, _, glfw::Release, _) =>
-               going_back = false,
-            glfw::KeyEvent(glfw::Key::R, _, glfw::Press, _) => {
-               let ent = everything.swarm.get_mut(0).unwrap();
-               let new_x = rng.gen_range(-10.0, 10.0);
-               let new_y = rng.gen_range(-10.0, 10.0);
-               ent.vel = Vector3::new(0.0, 0.0, 0.0);
-               ent.pos = Vector3::new(new_x, new_y, 20.0);
-            },
-            _ => {},
-        }
+      match event {
+        glfw::KeyEvent(glfw::Key::Escape, _, glfw::Press, _) =>
+          window.set_should_close(true),
+        glfw::KeyEvent(glfw::Key::H, _, glfw::Press, _) =>
+          going_left = true,
+        glfw::KeyEvent(glfw::Key::L, _, glfw::Press, _) =>
+          going_right = true,
+        glfw::KeyEvent(glfw::Key::H, _, glfw::Release, _) =>
+          going_left = false,
+        glfw::KeyEvent(glfw::Key::L, _, glfw::Release, _) =>
+          going_right = false,
+        glfw::KeyEvent(glfw::Key::J, _, glfw::Press, _) =>
+          going_fore = true,
+        glfw::KeyEvent(glfw::Key::K, _, glfw::Press, _) =>
+          going_back = true,
+        glfw::KeyEvent(glfw::Key::J, _, glfw::Release, _) =>
+          going_fore = false,
+        glfw::KeyEvent(glfw::Key::K, _, glfw::Release, _) =>
+          going_back = false,
+        glfw::KeyEvent(glfw::Key::R, _, glfw::Press, _) => {
+          for entity in everything.swarm.iter_mut() {
+            let new_x = rng.gen_range(-10.0, 10.0);
+            let new_y = rng.gen_range(-10.0, 10.0);
+            entity.vel = Vector3::new(0.0, 0.0, 0.0);
+            entity.pos = Vector3::new(new_x, new_y, 20.0);
+          }
+        },
+        _ => {},
+      }
     }
 
     let x = std::num::FloatMath::sin(camera_setting);
@@ -256,10 +256,12 @@ fn main() {
     data.model = Matrix4::from_translation(&Vector3::new(0.0, 0.0, 0.0)).into_fixed();
     graphics.draw(&anchor_batch, &data, &frame);
 
-    // Draw entity
-    let ent_pos = everything.swarm.get(0).unwrap().pos;
-    data.model = Matrix4::from_translation(&Vector3::new(ent_pos.x, ent_pos.y, ent_pos.z)).into_fixed();
-    graphics.draw(&ent_batch, &data, &frame);
+    // Draw entities
+    for entity in everything.swarm.iter() {
+      let ent_pos = entity.pos;
+      data.model = Matrix4::from_translation(&Vector3::new(ent_pos.x, ent_pos.y, ent_pos.z)).into_fixed();
+      graphics.draw(&ent_batch, &data, &frame);
+    }
 
     graphics.end_frame();
 
