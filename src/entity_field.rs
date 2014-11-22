@@ -60,9 +60,11 @@ impl EntityField {
 
   fn get_ent_by_id(&mut self, id: int) -> Option<&SwarmEnt> {
     for ent in self.swarm.iter() {
-      Some(ent);
+      if (ent.id == id) {
+        return Some(ent);
+      }
     }
-    None;
+    return None;
   }
 }
 
