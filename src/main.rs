@@ -1,4 +1,3 @@
-
 #![feature(phase)]
 // Graphics
 extern crate cgmath;

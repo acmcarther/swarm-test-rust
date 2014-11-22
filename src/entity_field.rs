@@ -39,19 +39,30 @@ impl EntityField {
       entity.integrate(delta_t, total_accel);
     }
 
-    let mut collisions: Vec<int> = Vec::new();
+    let mut collisions: Vec<(int, int)> = Vec::new();
 
     for first_ent in self.swarm.iter() {
       for second_ent in self.swarm.iter() {
         if first_ent.id < second_ent.id {
           // Collision detection
+          if first_ent.pos.sub_v(&second_ent.pos).length() < 1.0 {
+            collisions.push((first_ent.id, second_ent.id))
+          }
         }
       }
     }
 
     for collision in collisions.iter() {
       // Collision resolution
+      let &(first_id, second_id) = collision;
     }
+  }
+
+  fn get_ent_by_id(&mut self, id: int) -> Option<&SwarmEnt> {
+    for ent in self.swarm.iter() {
+      Some(ent);
+    }
+    None;
   }
 }
 
