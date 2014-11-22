@@ -10,12 +10,15 @@ extern crate native;
 extern crate time;
 
 use cgmath::FixedArray;
-use cgmath:: {Matrix4, Point3, Vector3};
+use cgmath:: {Matrix4, Point3};
+use cgmath::{Vector, Vector3, EuclideanVector};
 use cgmath::{Transform, AffineMatrix3};
 use gfx::{Device, DeviceHelper, ToSlice};
 use glfw::Context;
 use std::rand;
 use std::rand::Rng;
+
+use std::io::File;
 
 // Others
 
@@ -49,133 +52,6 @@ struct Params {
   proj: [[f32, ..4], ..4],
 }
 
-static VERTEX_SRC: gfx::ShaderSource<'static> = shaders! {
-GLSL_120: b"
-    #version 120
-
-    attribute vec3 a_Pos;
-    attribute vec3 a_Color;
-    varying vec3 v_Color;
-
-    uniform mat4 u_Model;
-    uniform mat4 u_View;
-    uniform mat4 u_Proj;
-
-    void main() {
-        v_Color = a_Color;
-        gl_Position = u_Proj * u_View * u_Model * vec4(a_Pos, 1.0);
-    }
-"
-GLSL_150: b"
-    #version 150 core
-    in vec3 a_Pos;
-    in vec3 a_Color;
-    out vec3 v_Color;
-
-    uniform mat4 u_Model;
-    uniform mat4 u_View;
-    uniform mat4 u_Proj;
-
-    void main() {
-        v_Color = a_Color;
-        gl_Position = u_Proj * u_View * u_Model * vec4(a_Pos, 1.0);
-    }
-"
-};
-
-static FRAGMENT_SRC: gfx::ShaderSource<'static> = shaders! {
-GLSL_120: b"
-    #version 120
-
-    varying vec3 v_Color;
-    out vec4 o_Color;
-
-    void main() {
-      o_Color = vec4(v_Color, 1.0);
-    }
-"
-GLSL_150: b"
-    #version 150 core
-    in vec3 v_Color;
-    out vec4 o_Color;
-
-    uniform sampler2D t_Color;
-    void main() {
-       o_Color = vec4(v_Color, 1.0);
-    }
-"
-};
-
-// --------- PURE MATH -----------------
-pub struct Vec3 {
-  x: f32,
-  y: f32,
-  z: f32
-}
-
-impl std::cmp::PartialEq for Vec3 {
-
-  fn eq(&self, other: &Vec3) -> bool {
-    self.x == other.x && self.y == other.y && self.z == other.z
-  }
-
-  fn ne(&self, other: &Vec3) -> bool {
-    !self.eq(other)
-  }
-}
-
-impl Vec3 {
-
-  fn new(x: f32, y: f32, z: f32) -> Vec3 {
-    return Vec3{x: x, y: y, z: z};
-  }
-
-  fn transform(&self, xformer: Vec3) -> Vec3 {
-    let x = self.x + xformer.x;
-    let y = self.y + xformer.y;
-    let z = self.z + xformer.z;
-
-    return Vec3::new(x, y, z);
-  }
-
-  fn scale(&self, scalar: f32) -> Vec3 {
-    let x = self.x * scalar;
-    let y = self.y * scalar;
-    let z = self.z * scalar;
-
-    return Vec3::new(x, y, z);
-  }
-
-  fn vec_delta(v1: Vec3, v2: Vec3) -> Vec3 {
-    let dx = v1.x - v2.x;
-    let dy = v1.y - v2.y;
-    let dz = v1.z - v2.z;
-
-    return Vec3::new(dx, dy, dz);
-  }
-
-  fn negated(&self) -> Vec3 {
-    return Vec3::new(-self.x, -self.y, -self.z);
-  }
-
-  fn norm(&self) -> f32 {
-    return std::num::Float::sqrt(self.x*self.x + self.y*self.y + self.z*self.z);
-  }
-
-  fn normalized(&self) -> Vec3 {
-    let l = self.norm();
-    if l == 0.0 {
-      return Vec3{x: 0.0, y: 0.0, z: 0.0};
-    }
-    return Vec3{x: self.x/l, y: self.y/l, z: self.z/l};
-  }
-
-  fn print(&self) -> () {
-    print!("Vec3({},", self.x);
-    print!("{},", self.y);
-    println!("{})", self.z);
-  }
-}
 
 // --------- Entities -----------
 pub struct EntityField {
@@ -188,7 +64,7 @@ impl EntityField {
   pub fn default() -> EntityField {
     let anchor = AnchorEnt::default();
     let world = WorldManifold::default();
-    let swarm = vec![SwarmEnt{pos: Vec3::new(0.1,1.0,2.0), vel: Vec3::new(0.0, 1.0, 0.5)}];
+    let swarm = vec![SwarmEnt{id: 0, pos: Vector3::new(0.1,1.0,2.0), vel: Vector3::new(0.0, 1.0, 0.5)}];
 
     return EntityField{anchor: anchor, world: world, swarm: swarm};
   }
@@ -201,11 +77,24 @@ impl EntityField {
     for entity in self.swarm.iter_mut() {
       let anchor_accel = self.anchor.damped_force_at(entity.pos, entity.vel);
       let swarm_accel = self.world.gradient_at(entity.pos);
-      let gravity_accel = Vec3::new(0.0, 0.0, GRAVITY_STR);
-      let total_accel = anchor_accel.transform(swarm_accel).transform(gravity_accel);
+      let gravity_accel = Vector3::new(0.0, 0.0, GRAVITY_STR);
+      let total_accel = anchor_accel.add_v(&swarm_accel).add_v(&gravity_accel);
 
-      // NOTE: Remember, no damping
       entity.integrate(delta_t, total_accel);
+    }
+
+    let mut collisions: Vec<int> = Vec::new();
+
+    for first_ent in self.swarm.iter() {
+      for second_ent in self.swarm.iter() {
+        if first_ent.id < second_ent.id {
+          // Collision detection
+        }
+      }
+    }
+
+    for collision in collisions.iter() {
+      // Collision resolution
     }
   }
 }
@@ -228,76 +117,64 @@ impl WorldManifold {
     self.power_level = 0
   }
 
-  pub fn deform(&self, pos: Vec3, magnitude: f32, diameter: f32) -> () {
+  pub fn deform(&self, pos: Vector3<f32>, magnitude: f32, diameter: f32) -> () {
     // TODO: Something. At all.
     // Probably apply a gaussian deformation onto a 2d array
     //println!("DEFORM");
   }
 
-  pub fn gradient_at(&self, pos: Vec3) -> Vec3 {
+  pub fn gradient_at(&self, pos: Vector3<f32>) -> Vector3<f32> {
     // TODO: When we get a model, get a gradient
-    return Vec3{x: 0.0, y: 0.0, z: 0.0};
+    return Vector3::new(0.0,0.0,0.0);
   }
 }
 
 pub struct SwarmEnt {
-  pos: Vec3,
-  vel: Vec3
+  id: int,
+  pos: Vector3<f32>,
+  vel: Vector3<f32>,
 }
 
 impl SwarmEnt {
-  pub fn at(pos: Vec3) -> SwarmEnt {
-    let vel = Vec3{x: 0.0, y: 0.0, z: 0.0};
-
-    return SwarmEnt{pos: pos, vel: vel};
-  }
-
-  pub fn default() -> SwarmEnt {
-    let pos = Vec3{x: 0.0, y: 0.0, z: 0.0};
-    let vel = Vec3{x: 0.0, y: 0.0, z: 0.0};
-
-    return SwarmEnt{pos: pos, vel: vel};
-  }
-
-  pub fn integrate(&mut self, delta_t: f32, accel: Vec3) -> () {
-    self.vel = self.vel.transform(accel.scale(delta_t));
-    self.pos = self.pos.transform(self.vel.scale(delta_t));
+  pub fn integrate(&mut self, delta_t: f32, accel: Vector3<f32>) -> () {
+    self.vel = self.vel.add_v(&accel.mul_s(delta_t));
+    self.pos = self.pos.add_v(&self.vel.mul_s(delta_t));
   }
 
   pub fn print(&self) -> () {
     //println!("Ent @ ");
-    self.pos.print();
+    println!("{}", self.pos);
   }
 }
 
 pub struct AnchorEnt {
-  pos: Vec3,
+  pos: Vector3<f32>,
   strength: f32,
   distance: f32,
 }
 
 impl AnchorEnt {
   pub fn default() -> AnchorEnt {
-    let pos = Vec3{x: 0.0, y: 0.0, z: 0.0};
+    let pos = Vector3::new(0.0, 0.0, 0.0);
 
     return AnchorEnt{pos: pos, strength: ANCHOR_FIELD_STR, distance: ANCHOR_FIELD_LEN};
   }
 
-  pub fn damped_force_at(&self, other_pos: Vec3, other_vel: Vec3) -> Vec3 {
-    let damping_factor = other_vel.scale(ANCHOR_FIELD_DAMP).negated();
+  pub fn damped_force_at(&self, other_pos: Vector3<f32>, other_vel: Vector3<f32>) -> Vector3<f32> {
+    let damping_factor = other_vel.mul_s(ANCHOR_FIELD_DAMP);
     // NOTE: Assumes insignificant anchor velocity
-    return self.force_at(other_pos).transform(damping_factor);
+    return self.force_at(other_pos).sub_v(&damping_factor);
   }
 
-  pub fn force_at(&self, other_pos: Vec3) -> Vec3 {
-    let delta = Vec3::vec_delta(self.pos, other_pos);
-    let idle_pos: Vec3 = if (delta == Vec3{x: 0.0, y: 0.0,z: 0.0}) {
-      Vec3{x: self.distance, y: 0.0, z: 0.0}
+  pub fn force_at(&self, other_pos: Vector3<f32>) -> Vector3<f32> {
+    let delta = self.pos.sub_v(&other_pos);
+    let idle_pos: Vector3<f32> = if (delta == Vector3::new(0.0, 0.0, 0.0)) {
+      Vector3::new(self.distance, 0.0, 0.0)
     } else {
-      delta.normalized().scale(self.distance)
+      delta.normalize_to(self.distance)
     };
 
-    return delta.transform(idle_pos.negated()).scale(self.strength);
+    return delta.sub_v(&idle_pos).mul_s(self.strength);
   }
 }
 
@@ -384,7 +261,23 @@ fn main() {
       .create_buffer_static::<u32>(index_data.as_slice())
       .to_slice(gfx::TriangleList);
 
-  let program = device.link_program(VERTEX_SRC.clone(), FRAGMENT_SRC.clone())
+  let vertex_shader_text: Vec<u8> = File::open(&Path::new("vertex-shader.glsl"))
+      .read_to_end()
+      .unwrap();
+
+  let fragment_shader_text: Vec<u8> = File::open(&Path::new("fragment-shader.glsl"))
+      .read_to_end()
+      .unwrap();
+
+  let vertex_shader: gfx::ShaderSource = shaders! {
+    GLSL_150: vertex_shader_text.as_slice()
+  };
+
+  let fragment_shader: gfx::ShaderSource = shaders! {
+    GLSL_150: fragment_shader_text.as_slice()
+  };
+
+  let program = device.link_program(vertex_shader.clone(), fragment_shader.clone())
                       .unwrap();
 
   let state = gfx::DrawState::new().depth(gfx::state::LessEqual, true);
@@ -466,8 +359,8 @@ fn main() {
                let ent = everything.swarm.get_mut(0).unwrap();
                let new_x = rng.gen_range(-10.0, 10.0);
                let new_y = rng.gen_range(-10.0, 10.0);
-               ent.vel = Vec3::new(0.0, 0.0, 0.0);
-               ent.pos = Vec3::new(new_x, new_y, 20.0);
+               ent.vel = Vector3::new(0.0, 0.0, 0.0);
+               ent.pos = Vector3::new(new_x, new_y, 20.0);
             },
             _ => {},
         }
@@ -484,7 +377,6 @@ fn main() {
     data.view = view.mat.into_fixed();
 
     graphics.clear(clear_data, gfx::COLOR | gfx::DEPTH, &frame);
-
 
     // Draw anchor
     data.model = Matrix4::from_translation(&Vector3::new(0.0, 0.0, 0.0)).into_fixed();
