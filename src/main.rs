@@ -319,19 +319,19 @@ fn main() {
     everything.tick(delta_t);
 
     if going_left  {
-      camera_setting = camera_setting + 0.1
+      camera_setting = camera_setting + (1.5 * delta_t)
     }
 
     if going_right  {
-      camera_setting = camera_setting - 0.1
+      camera_setting = camera_setting - (1.5 * delta_t)
     }
 
     if going_fore  {
-      range_setting = range_setting - 1.0
+      range_setting = range_setting - (15.0 * delta_t)
     }
 
     if going_back  {
-      range_setting = range_setting + 1.0
+      range_setting = range_setting + (15.0 * delta_t)
     }
 
     glfw.poll_events();
