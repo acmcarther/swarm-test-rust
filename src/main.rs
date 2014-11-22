@@ -9,6 +9,11 @@ extern crate glfw;
 extern crate native;
 extern crate time;
 
+use entity_field::EntityField;
+use anchor_ent::AnchorEnt;
+use swarm_ent::SwarmEnt;
+use world_manifold::WorldManifold;
+
 use cgmath::FixedArray;
 use cgmath:: {Matrix4, Point3};
 use cgmath::{Vector, Vector3, EuclideanVector};
@@ -20,15 +25,10 @@ use std::rand::Rng;
 
 use std::io::File;
 
-// Others
-
-static SPACE_FRICTION_COEF: f32 = 5.0;
-static ANCHOR_FIELD_LEN: f32 = 15.0;
-static ANCHOR_FIELD_STR: f32 = 15.0;
-static ANCHOR_FIELD_DAMP: f32 = 0.2;
-static SWARM_FIELD_SIZE: f32 = 2.0;
-static SWARM_FIELD_STR: f32 = 1.0;
-static GRAVITY_STR: f32 = -10.0;
+mod world_manifold;
+mod anchor_ent;
+mod swarm_ent;
+mod entity_field;
 
 // Graphics
 #[vertex_format]
@@ -50,132 +50,6 @@ struct Params {
 
   #[name= "u_Proj"]
   proj: [[f32, ..4], ..4],
-}
-
-
-// --------- Entities -----------
-pub struct EntityField {
-  anchor: AnchorEnt,
-  world: WorldManifold,
-  swarm: Vec<SwarmEnt>
-}
-
-impl EntityField {
-  pub fn default() -> EntityField {
-    let anchor = AnchorEnt::default();
-    let world = WorldManifold::default();
-    let swarm = vec![SwarmEnt{id: 0, pos: Vector3::new(0.1,1.0,2.0), vel: Vector3::new(0.0, 1.0, 0.5)}];
-
-    return EntityField{anchor: anchor, world: world, swarm: swarm};
-  }
-
-  pub fn tick(&mut self, delta_t: f32) -> () {
-    for entity in self.swarm.iter() {
-      self.world.deform(entity.pos, SWARM_FIELD_STR * delta_t, SWARM_FIELD_SIZE);
-    }
-
-    for entity in self.swarm.iter_mut() {
-      let anchor_accel = self.anchor.damped_force_at(entity.pos, entity.vel);
-      let swarm_accel = self.world.gradient_at(entity.pos);
-      let gravity_accel = Vector3::new(0.0, 0.0, GRAVITY_STR);
-      let total_accel = anchor_accel.add_v(&swarm_accel).add_v(&gravity_accel);
-
-      entity.integrate(delta_t, total_accel);
-    }
-
-    let mut collisions: Vec<int> = Vec::new();
-
-    for first_ent in self.swarm.iter() {
-      for second_ent in self.swarm.iter() {
-        if first_ent.id < second_ent.id {
-          // Collision detection
-        }
-      }
-    }
-
-    for collision in collisions.iter() {
-      // Collision resolution
-    }
-  }
-}
-
-pub struct WorldManifold {
-  power_level: int
-}
-
-impl WorldManifold {
-  pub fn default() -> WorldManifold {
-    // TODO: Make this an actual thing not an integer throne
-    // Probably a 2d array. Maybe something else thats faster
-    // Composition of gaussians faster?
-    return WorldManifold{power_level: 5};
-  }
-
-  pub fn flatten(&mut self) -> () {
-    // NOTE: What
-    // Probably set all indices in the array to zero. Ouch.
-    self.power_level = 0
-  }
-
-  pub fn deform(&self, pos: Vector3<f32>, magnitude: f32, diameter: f32) -> () {
-    // TODO: Something. At all.
-    // Probably apply a gaussian deformation onto a 2d array
-    //println!("DEFORM");
-  }
-
-  pub fn gradient_at(&self, pos: Vector3<f32>) -> Vector3<f32> {
-    // TODO: When we get a model, get a gradient
-    return Vector3::new(0.0,0.0,0.0);
-  }
-}
-
-pub struct SwarmEnt {
-  id: int,
-  pos: Vector3<f32>,
-  vel: Vector3<f32>,
-}
-
-impl SwarmEnt {
-  pub fn integrate(&mut self, delta_t: f32, accel: Vector3<f32>) -> () {
-    self.vel = self.vel.add_v(&accel.mul_s(delta_t));
-    self.pos = self.pos.add_v(&self.vel.mul_s(delta_t));
-  }
-
-  pub fn print(&self) -> () {
-    //println!("Ent @ ");
-    println!("{}", self.pos);
-  }
-}
-
-pub struct AnchorEnt {
-  pos: Vector3<f32>,
-  strength: f32,
-  distance: f32,
-}
-
-impl AnchorEnt {
-  pub fn default() -> AnchorEnt {
-    let pos = Vector3::new(0.0, 0.0, 0.0);
-
-    return AnchorEnt{pos: pos, strength: ANCHOR_FIELD_STR, distance: ANCHOR_FIELD_LEN};
-  }
-
-  pub fn damped_force_at(&self, other_pos: Vector3<f32>, other_vel: Vector3<f32>) -> Vector3<f32> {
-    let damping_factor = other_vel.mul_s(ANCHOR_FIELD_DAMP);
-    // NOTE: Assumes insignificant anchor velocity
-    return self.force_at(other_pos).sub_v(&damping_factor);
-  }
-
-  pub fn force_at(&self, other_pos: Vector3<f32>) -> Vector3<f32> {
-    let delta = self.pos.sub_v(&other_pos);
-    let idle_pos: Vector3<f32> = if (delta == Vector3::new(0.0, 0.0, 0.0)) {
-      Vector3::new(self.distance, 0.0, 0.0)
-    } else {
-      delta.normalize_to(self.distance)
-    };
-
-    return delta.sub_v(&idle_pos).mul_s(self.strength);
-  }
 }
 
 // --------- Main -----------
