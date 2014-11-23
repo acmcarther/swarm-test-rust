@@ -111,6 +111,11 @@ impl EntityField {
 
     // Make them bounce
     let total_vel = first_ent.vel.add_v(&second_ent.vel);
+
+    //let total_mass = first_ent.mass + second_ent.mass
+
+    self.swarm[first_id as uint].vel = total_vel.mul_s(0.5);
+    self.swarm[second_id as uint].vel = total_vel.mul_s(-0.5);
   }
 }
 
