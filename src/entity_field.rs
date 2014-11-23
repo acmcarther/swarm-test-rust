@@ -29,6 +29,15 @@ impl EntityField {
     let world = WorldManifold::default();
     let swarm = vec![SwarmEnt{id: 0, pos: Vector3::new(0.1,1.0,2.0), vel: Vector3::new(0.0, 1.0, 0.5)},
                      SwarmEnt{id: 1, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
+                     SwarmEnt{id: 2, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
+                     SwarmEnt{id: 3, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
+                     SwarmEnt{id: 4, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
+                     SwarmEnt{id: 5, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
+                     SwarmEnt{id: 6, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
+                     SwarmEnt{id: 7, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
+                     SwarmEnt{id: 8, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
+                     SwarmEnt{id: 9, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
+                     SwarmEnt{id: 10, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
         ];
 
     return EntityField{anchor: anchor, world: world, swarm: swarm};
@@ -93,7 +102,7 @@ impl EntityField {
 
     // Move the two ents
     let collision_vec = first_ent.pos.sub_v(&second_ent.pos);
-    let overlap = COLL_DIAMETER - collision_vec.length();
+    let overlap = COLL_DIAMETER - collision_vec.length() + 0.05*COLL_DIAMETER;
     let new_first_ent_pos = first_ent.pos.add_v(&collision_vec.normalize_to(overlap/2.0));
     let new_second_ent_pos = second_ent.pos.add_v(&collision_vec.neg().normalize_to(overlap/2.0));
 
