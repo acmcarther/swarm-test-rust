@@ -1,4 +1,5 @@
 #![feature(phase)]
+#![feature(slicing_syntax)]
 // Graphics
 extern crate cgmath;
 extern crate gfx;
