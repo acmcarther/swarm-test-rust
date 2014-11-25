@@ -4,14 +4,15 @@ name = "swarm-test-rust"
 version = "0.0.1"
 authors = ["Alex McArther <acmcarther@gmail.com>"]
 
+[dependencies.cgmath]
+git = "https://github.com/bjz/cgmath-rs"
+
 [dependencies]
 time = "*"
 
 [dependencies.gfx]
 git = "https://github.com/gfx-rs/gfx-rs"
 
-[dependencies.cgmath]
-git = "https://github.com/bjz/cgmath-rs"
 
 [dependencies.glfw]
 git = "https://github.com/bjz/glfw-rs"

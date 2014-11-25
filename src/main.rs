@@ -6,7 +6,6 @@ extern crate gfx;
 #[phase(plugin)]
 extern crate gfx_macros;
 extern crate glfw;
-extern crate native;
 extern crate time;
 
 use entity_field::EntityField;
@@ -85,14 +84,8 @@ fn generate_colored_model(r:f32, g:f32, b:f32) -> Vec<Vertex> {
   ]
 }
 
-#[start]
-fn start(argc: int, argv: *const *const u8) -> int {
-  native::start(argc, argv, main)
-}
-
 fn main() {
-  println!("Hello, world!");
-  println!("Now from my gaping maw I sing the song to end everthing.");
+  println!("Tra-la-la");
 
   let glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
 
