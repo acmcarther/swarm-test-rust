@@ -29,11 +29,14 @@ mod world_manifold;
 // Graphics
 #[vertex_format]
 struct Vertex {
-  #[name = "a_Pos"]
+  #[name = "u_pos"]
   pos: [f32, ..3],
 
-  #[name = "a_Color"]
-  color: [f32, ..3],
+  #[name = "u_normal"]
+  normal: [f32, ..3],
+
+  #[name = "u_uv"]
+  uv: [f32, ..2],
 }
 
 #[shader_param(Entity)]
@@ -46,41 +49,48 @@ struct Params {
 
   #[name= "u_Proj"]
   proj: [[f32, ..4], ..4],
+
+  #[name= "t_Color"]
+  color: gfx::shade::TextureParam,
+
+  #[name = "world_light_pos"]
+  light_pos: [f32, ..3],
 }
 
 // --------- Main -----------
 
 fn generate_colored_model(r:f32, g:f32, b:f32) -> Vec<Vertex> {
   vec![
-      Vertex { pos: [-1.0, -1.0,  1.0], color: [r, g, b] },
-      Vertex { pos: [ 1.0, -1.0,  1.0], color: [r, g, b] },
-      Vertex { pos: [ 1.0,  1.0,  1.0], color: [r, g, b] },
-      Vertex { pos: [-1.0,  1.0,  1.0], color: [r, g, b] },
+      Vertex { pos: [-1.0, -1.0,  1.0], normal: [0.0, 0.0, 1.0], uv: [0.0, 0.0]},
+      Vertex { pos: [ 1.0, -1.0,  1.0], normal: [0.0, 0.0, 1.0], uv: [0.0, 1.0]},
+      Vertex { pos: [ 1.0,  1.0,  1.0], normal: [0.0, 0.0, 1.0], uv: [1.0, 0.0]},
+      Vertex { pos: [-1.0,  1.0,  1.0], normal: [0.0, 0.0, 1.0], uv: [1.0, 1.0]},
+
       // bottom (0, 0, -1)
-      Vertex { pos: [-1.0,  1.0, -1.0], color: [r, g, b] },
-      Vertex { pos: [ 1.0,  1.0, -1.0], color: [r, g, b] },
-      Vertex { pos: [ 1.0, -1.0, -1.0], color: [r, g, b] },
-      Vertex { pos: [-1.0, -1.0, -1.0], color: [r, g, b] },
+      Vertex { pos: [-1.0,  1.0, -1.0], normal: [0.0, 0.0, -1.0], uv: [0.0, 0.0]},
+      Vertex { pos: [ 1.0,  1.0, -1.0], normal: [0.0, 0.0, -1.0], uv: [0.0, 1.0]},
+      Vertex { pos: [ 1.0, -1.0, -1.0], normal: [0.0, 0.0, -1.0], uv: [1.0, 0.0]},
+      Vertex { pos: [-1.0, -1.0, -1.0], normal: [0.0, 0.0, -1.0], uv: [1.0, 1.0]},
       // right (1, 0, 0)
-      Vertex { pos: [ 1.0, -1.0, -1.0], color: [r, g, b] },
-      Vertex { pos: [ 1.0,  1.0, -1.0], color: [r, g, b] },
-      Vertex { pos: [ 1.0,  1.0,  1.0], color: [r, g, b] },
-      Vertex { pos: [ 1.0, -1.0,  1.0], color: [r, g, b] },
+      Vertex { pos: [ 1.0, -1.0, -1.0], normal: [1.0, 0.0, 0.0], uv: [0.0, 0.0]},
+      Vertex { pos: [ 1.0,  1.0, -1.0], normal: [1.0, 0.0, 0.0], uv: [0.0, 1.0]},
+      Vertex { pos: [ 1.0,  1.0,  1.0], normal: [1.0, 0.0, 0.0], uv: [1.0, 0.0]},
+      Vertex { pos: [ 1.0, -1.0,  1.0], normal: [1.0, 0.0, 0.0], uv: [1.0, 1.0]},
       // left (-1, 0, 0)
-      Vertex { pos: [-1.0, -1.0,  1.0], color: [r, g, b] },
-      Vertex { pos: [-1.0,  1.0,  1.0], color: [r, g, b] },
-      Vertex { pos: [-1.0,  1.0, -1.0], color: [r, g, b] },
-      Vertex { pos: [-1.0, -1.0, -1.0], color: [r, g, b] },
+      Vertex { pos: [-1.0, -1.0,  1.0], normal: [-1.0, 0.0, 0.0], uv: [0.0, 0.0]},
+      Vertex { pos: [-1.0,  1.0,  1.0], normal: [-1.0, 0.0, 0.0], uv: [0.0, 1.0]},
+      Vertex { pos: [-1.0,  1.0, -1.0], normal: [-1.0, 0.0, 0.0], uv: [1.0, 0.0]},
+      Vertex { pos: [-1.0, -1.0, -1.0], normal: [-1.0, 0.0, 0.0], uv: [1.0, 1.0]},
       // front (0, 1, 0)
-      Vertex { pos: [ 1.0,  1.0, -1.0], color: [r, g, b] },
-      Vertex { pos: [-1.0,  1.0, -1.0], color: [r, g, b] },
-      Vertex { pos: [-1.0,  1.0,  1.0], color: [r, g, b] },
-      Vertex { pos: [ 1.0,  1.0,  1.0], color: [r, g, b] },
+      Vertex { pos: [ 1.0,  1.0, -1.0], normal: [0.0, 1.0, 0.0], uv: [0.0, 0.0]},
+      Vertex { pos: [-1.0,  1.0, -1.0], normal: [0.0, 1.0, 0.0], uv: [0.0, 1.0]},
+      Vertex { pos: [-1.0,  1.0,  1.0], normal: [0.0, 1.0, 0.0], uv: [1.0, 0.0]},
+      Vertex { pos: [ 1.0,  1.0,  1.0], normal: [0.0, 1.0, 0.0], uv: [1.0, 1.0]},
       // back (0, -1, 0)
-      Vertex { pos: [ 1.0, -1.0,  1.0], color: [r, g, b] },
-      Vertex { pos: [-1.0, -1.0,  1.0], color: [r, g, b] },
-      Vertex { pos: [-1.0, -1.0, -1.0], color: [r, g, b] },
-      Vertex { pos: [ 1.0, -1.0, -1.0], color: [r, g, b] },
+      Vertex { pos: [ 1.0, -1.0,  1.0], normal: [0.0, -1.0, 0.0], uv: [0.0, 0.0]},
+      Vertex { pos: [-1.0, -1.0,  1.0], normal: [0.0, -1.0, 0.0], uv: [0.0, 1.0]},
+      Vertex { pos: [-1.0, -1.0, -1.0], normal: [0.0, -1.0, 0.0], uv: [1.0, 0.0]},
+      Vertex { pos: [ 1.0, -1.0, -1.0], normal: [0.0, -1.0, 0.0], uv: [1.0, 1.0]},
   ]
 }
 
@@ -125,6 +135,23 @@ fn main() {
       .create_buffer_static::<u32>(index_data.as_slice())
       .to_slice(gfx::TriangleList);
 
+  let texture_info = gfx::tex::TextureInfo {
+    width: 1,
+    height: 1,
+    depth: 1,
+    levels: 1,
+    kind: gfx::tex::Texture2D,
+    format: gfx::tex::RGBA8,
+  };
+
+  let image_info = texture_info.to_image_info();
+  let texture = device.create_texture(texture_info).unwrap();
+  device.update_texture(&texture, &image_info, &[0x20u8, 0xA0u8, 0xC0u8, 0x00u8]).unwrap();
+
+  let sampler = device.create_sampler(
+    gfx::tex::SamplerInfo::new(gfx::tex::Bilinear, gfx::tex::Clamp)
+  );
+
   let vertex_shader_text: Vec<u8> = File::open(&Path::new("vertex-shader.glsl"))
       .read_to_end()
       .unwrap();
@@ -152,6 +179,8 @@ fn main() {
 
   let aspect = w as f32 / h as f32;
   let mut data = Params {
+      light_pos: Vector3::new(0.0, 0.0, -3.0).into_fixed(),
+      color: (texture, Some(sampler)),
       model: Matrix4::identity().into_fixed(),
       view: Matrix4::identity().into_fixed(),
       proj: cgmath::perspective(cgmath::deg(60.0f32), aspect, 0.1, 1000.0).into_fixed(),
