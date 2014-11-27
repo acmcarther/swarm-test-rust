@@ -3,6 +3,7 @@ name = "swarm-test-rust"
 version = "0.0.1"
 dependencies = [
  "cgmath 0.0.1 (git+https://github.com/bjz/cgmath-rs)",
+ "genmesh 0.0.1 (git+https://github.com/csherratt/genmesh.git)",
  "gfx 0.1.0 (git+https://github.com/gfx-rs/gfx-rs)",
  "glfw 0.0.1 (git+https://github.com/bjz/glfw-rs)",
  "time 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -25,6 +26,11 @@ dependencies = [
 name = "gcc"
 version = "0.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "genmesh"
+version = "0.0.1"
+source = "git+https://github.com/csherratt/genmesh.git#ef4494db1eb9b3a2f13e7c555a905f20f1799500"
 
 [[package]]
 name = "gfx"

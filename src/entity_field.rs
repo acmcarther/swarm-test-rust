@@ -7,9 +7,8 @@ use swarm_ent::SwarmEnt;
 use cgmath::{Vector, Vector3, EuclideanVector};
 
 
-static SWARM_FIELD_SIZE: f32 = 2.0;
-static SWARM_FIELD_STR: f32 = 1.0;
-static GRAVITY_STR: f32 = -10.0;
+static SWARM_FIELD_STR: int = 10;
+//static GRAVITY_STR: f32 = -10.0;
 static COLL_DIAMETER: f32 = 2.0;
 
 pub struct Collision {
@@ -27,38 +26,40 @@ impl EntityField {
   pub fn default() -> EntityField {
     let anchor = AnchorEnt::default();
     let world = WorldManifold::default();
-    let swarm = vec![SwarmEnt{id: 0, pos: Vector3::new(0.1,1.0,2.0), vel: Vector3::new(0.0, 1.0, 0.5)},
-                     SwarmEnt{id: 1, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
-                     SwarmEnt{id: 2, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
-                     SwarmEnt{id: 3, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
-                     SwarmEnt{id: 4, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
-                     SwarmEnt{id: 5, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
-                     SwarmEnt{id: 6, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
-                     SwarmEnt{id: 7, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
-                     SwarmEnt{id: 8, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
-                     SwarmEnt{id: 9, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
-                     SwarmEnt{id: 10, pos: Vector3::new(0.3,0.5,2.0), vel: Vector3::new(0.1, 1.0, 0.2)},
+    let swarm = vec![SwarmEnt{id: 0, pos: Vector3::new(0.0,1.0,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 1, pos: Vector3::new(0.5,1.0,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 2, pos: Vector3::new(1.0,1.0,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 3, pos: Vector3::new(1.0,0.5,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 4, pos: Vector3::new(1.0,0.0,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 5, pos: Vector3::new(1.0,-0.5,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 6, pos: Vector3::new(1.0,-1.0,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 7, pos: Vector3::new(0.5,-1.0,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 8, pos: Vector3::new(0.0,-1.0,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
         ];
 
     return EntityField{anchor: anchor, world: world, swarm: swarm};
   }
 
   pub fn tick(&mut self, delta_t: f32) -> () {
+    self.world.flatten();
+
     for entity in self.swarm.iter() {
       // I dont think this should use delta t, dt is factored in @ integration time
-      self.world.deform(entity.pos, SWARM_FIELD_STR * delta_t, SWARM_FIELD_SIZE);
+      self.world.deform(entity.pos, SWARM_FIELD_STR);
     }
 
     for entity in self.swarm.iter_mut() {
       let anchor_accel = self.anchor.damped_force_at(entity.pos, entity.vel);
-      let swarm_accel = self.world.gradient_at(entity.pos);
-      let gravity_accel = Vector3::new(0.0, 0.0, GRAVITY_STR);
+      let swarm_accel = self.world.gradient_at(entity.pos).mul_s(0.2);
+      let gravity_accel = Vector3::new(0.0, 0.0, 0.0);
       let total_accel = anchor_accel.add_v(&swarm_accel).add_v(&gravity_accel);
+
+      //println!("accels: anchor_accel: {}, swarm_accel: {}", anchor_accel, swarm_accel)
 
       entity.integrate(delta_t, total_accel);
     }
 
-    self.resolve_all_collisions();
+    //self.resolve_all_collisions();
 
   }
 
@@ -66,7 +67,7 @@ impl EntityField {
     let mut collisions = self.find_collisions();
     let mut iterations: int = 0;
 
-    while( !collisions.is_empty() && iterations < 5 ) {
+    while !collisions.is_empty() && iterations < 5 {
 
       for collision in collisions.iter() {
         self.resolve_single_collision(collision);
@@ -114,8 +115,8 @@ impl EntityField {
 
     //let total_mass = first_ent.mass + second_ent.mass
 
-    self.swarm[first_id as uint].vel = total_vel.mul_s(0.5);
-    self.swarm[second_id as uint].vel = total_vel.mul_s(-0.5);
+    self.swarm[first_id as uint].vel = total_vel.mul_s(-0.5);
+    self.swarm[second_id as uint].vel = total_vel.mul_s(0.5);
   }
 }
 

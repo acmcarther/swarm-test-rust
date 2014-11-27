@@ -3,21 +3,29 @@
 // Graphics
 extern crate cgmath;
 extern crate gfx;
+extern crate device;
+extern crate render;
 #[phase(plugin)]
 extern crate gfx_macros;
 extern crate glfw;
+extern crate genmesh;
 extern crate time;
 
 use entity_field::EntityField;
 
 use cgmath::FixedArray;
 use cgmath:: {Matrix4, Point3};
-use cgmath::{Vector3};
+use cgmath::{Vector2, Vector3};
 use cgmath::{Transform, AffineMatrix3};
 use gfx::{Device, DeviceHelper, ToSlice};
+use device::BufferUsage;
+use render::mesh::Mesh;
 use glfw::Context;
 use std::rand;
 use std::rand::Rng;
+
+use genmesh::{Vertices, Triangulate};
+use genmesh::generators::{Plane, SharedVertex, IndexedPolygon};
 
 use std::io::File;
 
@@ -59,7 +67,7 @@ struct Params {
 
 // --------- Main -----------
 
-fn generate_colored_model(r:f32, g:f32, b:f32) -> Vec<Vertex> {
+fn generate_model() -> Vec<Vertex> {
   vec![
       Vertex { pos: [-1.0, -1.0,  1.0], normal: [0.0, 0.0, 1.0], uv: [0.0, 0.0]},
       Vertex { pos: [ 1.0, -1.0,  1.0], normal: [0.0, 0.0, 1.0], uv: [0.0, 1.0]},
@@ -116,11 +124,38 @@ fn main() {
 
   let mut device = gfx::GlDevice::new(|s| window.get_proc_address(s));
 
-  let ent_data: Vec<Vertex> = generate_colored_model(0.2, 0.2, 0.7);
-  let anchor_data: Vec<Vertex> = generate_colored_model(0.7, 0.2, 0.2);
+  let ent_data: Vec<Vertex> = generate_model();
+  let anchor_data: Vec<Vertex> = generate_model();
 
   let ent_mesh = device.create_mesh(ent_data.as_slice());
   let anchor_mesh = device.create_mesh(anchor_data.as_slice());
+
+  let plane = Plane::subdivide(64,64);
+  let mut plane_vertex_data: Vec<Vertex> = plane.shared_vertex_iter()
+      .map(|(x, y)| {
+        Vertex{ 
+          pos: [ x*100.0, y*100.0, 1.0],
+          normal: [0.0, 0.0, 1.0],
+          uv: [0.7, 0.7]
+        }
+      })
+      .collect();
+
+  let plane_index_data: Vec<u32> = plane.indexed_polygon_iter()
+      .triangulate()
+      .vertices()
+      .map(|i| i as u32)
+      .collect();
+
+  // Using direct instantiation instead of easy mode helpers, these are static though
+  let mut plane_idx_buffer = device.create_buffer::<u32>(plane_index_data.len(), device::BufferUsage::Static);
+  device.update_buffer(plane_idx_buffer, plane_index_data.as_slice(), 0u);
+  let plane_slice = plane_idx_buffer.to_slice(gfx::TriangleList);
+
+  // Dynamic vertices here
+  let mut plane_vert_buffer = device.create_buffer(plane_vertex_data.len(), device::BufferUsage::Stream);
+  device.update_buffer(plane_vert_buffer, plane_vertex_data.as_slice(), 0u);
+  let plane_mesh = render::mesh::Mesh::from_format(plane_vert_buffer, plane_vertex_data.len() as device::VertexCount);
 
   let index_data: Vec<u32> = vec![
        0,  1,  2,  2,  3,  0, // top
@@ -176,6 +211,7 @@ fn main() {
 
   let ent_batch: Entity = graphics.make_batch(&program, &ent_mesh, slice, &state).unwrap();
   let anchor_batch: Entity = graphics.make_batch(&program, &anchor_mesh, slice, &state).unwrap();
+  let plane_batch: Entity = graphics.make_batch(&program, &plane_mesh, plane_slice, &state).unwrap();
 
   let aspect = w as f32 / h as f32;
   let mut data = Params {
@@ -205,6 +241,13 @@ fn main() {
   let mut rng = rand::task_rng();
 
   while !window.should_close() {
+
+    for vertex in plane_vertex_data.iter_mut() {
+      let height = everything.world.height_at(Vector2::new(vertex.pos[0], vertex.pos[1]));
+      vertex.pos = [vertex.pos[0], vertex.pos[1], height/100.0];
+    }
+    graphics.device.update_buffer(plane_vert_buffer, plane_vertex_data.as_slice(), 0u);
+
     let current_time = time::precise_time_ns();
     let delta_t = ((current_time - last_time) as f32) / 1_000_000_000.0 ;
     last_time = current_time;
@@ -226,6 +269,7 @@ fn main() {
     if going_back  {
       range_setting = range_setting + (15.0 * delta_t)
     }
+
 
     glfw.poll_events();
     for (_, event) in glfw::flush_messages(&events) {
@@ -271,6 +315,10 @@ fn main() {
     data.view = view.mat.into_fixed();
 
     graphics.clear(clear_data, gfx::COLOR | gfx::DEPTH, &frame);
+    
+    // Draw plane
+    data.model = Matrix4::from_translation(&Vector3::new(0.0, 0.0, -10.0)).into_fixed();
+    graphics.draw(&plane_batch, &data, &frame);
 
     // Draw anchor
     data.model = Matrix4::from_translation(&Vector3::new(0.0, 0.0, 0.0)).into_fixed();
