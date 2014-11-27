@@ -38,6 +38,12 @@ impl EntityField {
                      SwarmEnt{id: 6, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
                      SwarmEnt{id: 7, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
                      SwarmEnt{id: 8, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 9, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 9, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 10, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 11, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 12, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 13, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
         ];
                      //SwarmEnt{id: 1, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
 
