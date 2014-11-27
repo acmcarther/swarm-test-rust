@@ -130,7 +130,7 @@ fn main() {
   let ent_mesh = device.create_mesh(ent_data.as_slice());
   let anchor_mesh = device.create_mesh(anchor_data.as_slice());
 
-  let plane = Plane::subdivide(64,64);
+  let plane = Plane::subdivide(512,512);
   let mut plane_vertex_data: Vec<Vertex> = plane.shared_vertex_iter()
       .map(|(x, y)| {
         Vertex{ 
@@ -244,7 +244,7 @@ fn main() {
 
     for vertex in plane_vertex_data.iter_mut() {
       let height = everything.world.height_at(Vector2::new(vertex.pos[0], vertex.pos[1]));
-      vertex.pos = [vertex.pos[0], vertex.pos[1], height/100.0];
+      vertex.pos = [vertex.pos[0], vertex.pos[1], height/20.0];
     }
     graphics.device.update_buffer(plane_vert_buffer, plane_vertex_data.as_slice(), 0u);
 

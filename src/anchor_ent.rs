@@ -2,8 +2,8 @@ extern crate cgmath;
 
 use cgmath::{Vector, Vector3, EuclideanVector};
 
-static ANCHOR_FIELD_LEN: f32 = 15.0;
-static ANCHOR_FIELD_STR: f32 = 15.0;
+static ANCHOR_FIELD_LEN: f32 = 10.0;
+static ANCHOR_FIELD_STR: f32 = 10.0;
 static ANCHOR_FIELD_DAMP: f32 = 0.2;
 
 pub struct AnchorEnt {

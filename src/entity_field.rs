@@ -6,8 +6,10 @@ use swarm_ent::SwarmEnt;
 
 use cgmath::{Vector, Vector3, EuclideanVector};
 
+use std::rand;
+use std::rand::Rng;
 
-static SWARM_FIELD_STR: int = 10;
+static SWARM_FIELD_STR: int = 100;
 //static GRAVITY_STR: f32 = -10.0;
 static COLL_DIAMETER: f32 = 2.0;
 
@@ -26,15 +28,21 @@ impl EntityField {
   pub fn default() -> EntityField {
     let anchor = AnchorEnt::default();
     let world = WorldManifold::default();
+    let mut rng = rand::task_rng();
     let swarm = vec![SwarmEnt{id: 0, pos: Vector3::new(0.0,1.0,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
-                     SwarmEnt{id: 1, pos: Vector3::new(0.5,1.0,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
-                     SwarmEnt{id: 2, pos: Vector3::new(1.0,1.0,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
-                     SwarmEnt{id: 3, pos: Vector3::new(1.0,0.5,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
-                     SwarmEnt{id: 4, pos: Vector3::new(1.0,0.0,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
-                     SwarmEnt{id: 5, pos: Vector3::new(1.0,-0.5,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
-                     SwarmEnt{id: 6, pos: Vector3::new(1.0,-1.0,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
-                     SwarmEnt{id: 7, pos: Vector3::new(0.5,-1.0,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
-                     SwarmEnt{id: 8, pos: Vector3::new(0.0,-1.0,0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 1, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 2, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 3, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 4, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 5, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 6, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 7, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 8, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 9, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 10, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 11, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 12, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
+                     SwarmEnt{id: 13, pos: Vector3::new(rng.gen_range(-5.0, 5.0),rng.gen_range(-5.0, 5.0),0.0), vel: Vector3::new(0.0, 0.0, 0.0)},
         ];
 
     return EntityField{anchor: anchor, world: world, swarm: swarm};
@@ -50,7 +58,7 @@ impl EntityField {
 
     for entity in self.swarm.iter_mut() {
       let anchor_accel = self.anchor.damped_force_at(entity.pos, entity.vel);
-      let swarm_accel = self.world.gradient_at(entity.pos).mul_s(0.2);
+      let swarm_accel = self.world.gradient_at(entity.pos).mul_s(0.1);
       let gravity_accel = Vector3::new(0.0, 0.0, 0.0);
       let total_accel = anchor_accel.add_v(&swarm_accel).add_v(&gravity_accel);
 

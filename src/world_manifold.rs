@@ -100,40 +100,38 @@ impl WorldManifold {
   }
 
   fn calculate_deformation(magnitude: int) -> Vec<Vec<f32>> {
-    let maximum_range = (100.0/(3.14159*4.0) * (magnitude.abs() as f32)).sqrt().floor() as uint;
+    // Sets the "spread"
+    let sigma: f32 = 2.0;
+    let two_sigma_square: f32 = 18.0*(sigma*sigma);
+
+    // Caps the range of the gaussian
+    let maximum_range: uint = 8;
 
     return Vec::from_fn(maximum_range*2 + 1, |row| {
       Vec::from_fn( maximum_range*2 + 1, |column| {
-        let x: f32 = (maximum_range as f32) - (column as f32);
-        let y: f32 = (maximum_range as f32) - (row as f32);
+        //println!("{},{}", column, row);
+        let x: f32 =  ((maximum_range as f32) - (column as f32));
+        let y: f32 =  ((maximum_range as f32) - (row as f32));
+        //println!("      {},{}", x, y);
 
-        let field_strength: f32 = if x == 0.0 && y == 0.0 {
-          // Somewhat arbitrary
-          (2 * magnitude) as f32
-        } else {
-          (magnitude as f32) / 4.0*3.14159*(x*x + y*y)
-        };
+        let gaussian: f32 = (-(((x*x)/two_sigma_square) + ((y*y)/two_sigma_square))).exp();
+        let field_strength: f32 = (magnitude as f32)*gaussian;
 
-        
         field_strength
       })
     });
   }
 
   fn world_pos_to_field_pos(pos: Vector3<f32>) -> Vector3<uint> {
-    let x: f32 = pos.x * 10.0 + 5000.0;
-    let y: f32 = pos.y * 10.0 + 5000.0;
-
-    assert!(x > 0.0 && x < 10000.0);
-    assert!(y > 0.0 && y < 10000.0);
-
-    Vector3::new(x as uint, y as uint, 0u)
+    let result = WorldManifold::world_pos_to_field_pos_2d(Vector2::new(pos.x, pos.y));
+    Vector3::new(result.x, result.y, 0u)
   }
-  
-  fn world_pos_to_field_pos_2d(pos: Vector2<f32>) -> Vector2<uint> {
-    let x: f32 = pos.x * 10.0 + 5000.0;
-    let y: f32 = pos.y * 10.0 + 5000.0;
 
+  fn world_pos_to_field_pos_2d(pos: Vector2<f32>) -> Vector2<uint> {
+    let x: f32 = pos.x * 5.0 + 5000.0;
+    let y: f32 = pos.y * 5.0 + 5000.0;
+
+    // Keep us from going off the plane
     assert!(x > 0.0 && x < 10000.0);
     assert!(y > 0.0 && y < 10000.0);
 
