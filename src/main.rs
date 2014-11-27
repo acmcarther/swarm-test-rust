@@ -133,7 +133,7 @@ fn main() {
   let plane = Plane::subdivide(512,512);
   let mut plane_vertex_data: Vec<Vertex> = plane.shared_vertex_iter()
       .map(|(x, y)| {
-        Vertex{ 
+        Vertex{
           pos: [ x*100.0, y*100.0, 1.0],
           normal: [0.0, 0.0, 1.0],
           uv: [0.7, 0.7]
@@ -297,7 +297,7 @@ fn main() {
             let new_x = rng.gen_range(-10.0, 10.0);
             let new_y = rng.gen_range(-10.0, 10.0);
             entity.vel = Vector3::new(0.0, 0.0, 0.0);
-            entity.pos = Vector3::new(new_x, new_y, 20.0);
+            entity.pos = Vector3::new(new_x, new_y, 0.0);
           }
         },
         _ => {},

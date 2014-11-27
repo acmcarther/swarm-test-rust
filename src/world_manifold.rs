@@ -5,6 +5,8 @@ use std::collections::HashMap;
 use std::num::Float;
 use std::num::SignedInt;
 
+static SQRT_2: f32 = 1.414213562;
+
 pub struct Deformation {
   magnitude: int,
   x: f32,
@@ -60,22 +62,21 @@ impl WorldManifold {
     //println!("[ {}, {}, {} ]", self.field[pos.y-1][pos.x-1], self.field[pos.y-1][pos.x], self.field[pos.y-1][pos.x+1]);
     //println!("[ {}, {}, {} ]", self.field[pos.y][pos.x-1], self.field[pos.y][pos.x], self.field[pos.y][pos.x+1]);
     //println!("[ {}, {}, {} ]", self.field[pos.y+1][pos.x-1], self.field[pos.y+1][pos.x], self.field[pos.y+1][pos.x+1]);
-    
-    let dx = (self.field[pos.y+1][pos.x+1] +
-              self.field[pos.y+1][pos.x] +
-              self.field[pos.y+1][pos.x-1])
-              -
-              (self.field[pos.y-1][pos.x+1] +
-              self.field[pos.y-1][pos.x] +
-              self.field[pos.y-1][pos.x-1]);
-
-    let dy = (self.field[pos.y+1][pos.x+1] +
+    let dx = -(SQRT_2 * self.field[pos.y+1][pos.x+1] +
               self.field[pos.y][pos.x+1] +
-              self.field[pos.y-1][pos.x+1])
-              -
-              (self.field[pos.y+1][pos.x-1] +
+              SQRT_2 * self.field[pos.y-1][pos.x+1])
+              +
+              (SQRT_2 * self.field[pos.y+1][pos.x-1] +
               self.field[pos.y][pos.x-1] +
-              self.field[pos.y-1][pos.x-1]);
+              SQRT_2 * self.field[pos.y-1][pos.x-1]);
+
+    let dy = -(SQRT_2 *self.field[pos.y+1][pos.x+1] +
+              self.field[pos.y+1][pos.x] +
+              SQRT_2 * self.field[pos.y+1][pos.x-1])
+              +
+              (SQRT_2 * self.field[pos.y-1][pos.x+1] +
+              self.field[pos.y-1][pos.x] +
+              SQRT_2 * self.field[pos.y-1][pos.x-1]);
 
     return Vector3::new( dx as f32, dy as f32, 0.0);
     //return Vector3::new( 0.0, 0.0, 0.0);
@@ -94,7 +95,7 @@ impl WorldManifold {
       },
       _ => ()
     };
-    println!("calc deform: {} ", WorldManifold::calculate_deformation(magnitude));
+    //println!("calc deform: {} ", WorldManifold::calculate_deformation(magnitude));
     deform_memo.insert(magnitude, WorldManifold::calculate_deformation(magnitude));
     return deform_memo.get(&magnitude).unwrap().clone();
   }
@@ -128,8 +129,8 @@ impl WorldManifold {
   }
 
   fn world_pos_to_field_pos_2d(pos: Vector2<f32>) -> Vector2<uint> {
-    let x: f32 = pos.x * 5.0 + 5000.0;
-    let y: f32 = pos.y * 5.0 + 5000.0;
+    let x: f32 = pos.x * 3.0 + 5000.0;
+    let y: f32 = pos.y * 3.0 + 5000.0;
 
     // Keep us from going off the plane
     assert!(x > 0.0 && x < 10000.0);
